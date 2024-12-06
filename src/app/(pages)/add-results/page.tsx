@@ -39,7 +39,7 @@ const ACCEPTED_IMAGE_TYPES = [
 
 const formSchema = z.object({
   rollNumber: z.string().min(1, "Roll number is required"),
-  name:z.string().min(3,'Student name is required').max(4),
+  name:z.string().min(3,'Student name is required'),
   marks:z.string().min(0,'Student marks is required').max(100),
   resultImage: z
     .custom<File | null>()
