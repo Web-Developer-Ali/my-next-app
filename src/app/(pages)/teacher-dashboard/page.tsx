@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Table,
   TableBody,
@@ -21,82 +23,83 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Eye } from "lucide-react";
-import { useToast } from "@/hooks/use-toast"
+import { Eye, Pencil, Trash } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import Image from "next/image";
-// Mock data for student results
-const initialResults = [
-  {
-    id: 1,
-    rollNumber: "001",
-    name: "John Doe",
-    score: 85,
-    imageUrl: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 2,
-    rollNumber: "002",
-    name: "Jane Smith",
-    score: 92,
-    imageUrl: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 3,
-    rollNumber: "003",
-    name: "Bob Johnson",
-    score: 78,
-    imageUrl: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 4,
-    rollNumber: "004",
-    name: "Alice Brown",
-    score: 95,
-    imageUrl: "/placeholder.svg?height=200&width=200",
-  },
-  {
-    id: 5,
-    rollNumber: "005",
-    name: "Charlie Davis",
-    score: 88,
-    imageUrl: "/placeholder.svg?height=200&width=200",
-  },
-];
+
+type Result = {
+  id: number;
+  rollNumber: number;
+  name: string;
+  score: number;
+  imageUrl: string;
+};
 
 export default function TeacherResultsDashboard() {
-  const [results, setResults] = useState(initialResults);
-  const [selectedResult, setSelectedResult] = useState<
-    (typeof initialResults)[0] | null
-  >(null);
-  const [isUpdateMode, setIsUpdateMode] = useState(false);
+  const [results, setResults] = useState<Result[]>([]);
+  const [selectedResult, setSelectedResult] = useState<Result | null>(null);
+  const router = useRouter();
   const { toast } = useToast();
 
-  const handleUpdate = (id: number, newScore: number) => {
-    setResults((prevResults) =>
-      prevResults.map((result) =>
-        result.id === id ? { ...result, score: newScore } : result
-      )
-    );
-    setSelectedResult(null);
-    setIsUpdateMode(false);
-    toast({
-      title: "Success",
-      description: "Result updated successfully",
-    });
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const response = await axios.get("/api/getAllAdeddResults");
+        if (response.data.student) {
+          setResults(response.data.student);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to fetch students",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching student results:", error);
+        toast({
+          title: "Error",
+          description: "An error occurred while fetching data",
+          variant: "destructive",
+        });
+      }
+    };
+    fetchResults();
+  }, [toast]);
+
+  const deleteResult = async (id: number) => {
+    try {
+      const response = await axios.delete(`/api/deleteResult/${id}`);
+      if (response.status === 200) {
+        setResults((prevResults) => prevResults.filter((result) => result.id !== id));
+        toast({
+          title: "Success",
+          description: "Result deleted successfully",
+        });
+      } else {
+        throw new Error('Failed to delete result');
+      }
+    } catch (error) {
+      console.error("Error deleting result:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred while deleting the result",
+        variant: "destructive",
+      });
+    }
   };
 
-  
+  const redirectToUpdate = (id: number) => {
+    router.push(`/add-results?id=${id}`);
+  };
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-5">Student Results Dashboard</h1>      
+      <h1 className="text-2xl font-bold mb-5">Student Results Dashboard</h1>
       <Link href="/add-results">
         <Button variant="outline" className="mb-5">
           Add Result of Student
         </Button>
       </Link>
-      {/* Results Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -110,7 +113,7 @@ export default function TeacherResultsDashboard() {
           <TableBody>
             {results.map((result) => (
               <TableRow key={result.id}>
-                <TableCell>{result.rollNumber}</TableCell>
+                <TableCell>{result.rollNumber.toString()}</TableCell>
                 <TableCell>{result.name}</TableCell>
                 <TableCell>{result.score}</TableCell>
                 <TableCell>
@@ -120,19 +123,14 @@ export default function TeacherResultsDashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setSelectedResult(result);
-                            setIsUpdateMode(false);
-                          }}
+                          onClick={() => setSelectedResult(result)}
                         >
                           <Eye className="h-4 w-4 mr-1" /> View
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
-                          <DialogTitle>
-                            {isUpdateMode ? "Update Result" : "View Result"}
-                          </DialogTitle>
+                          <DialogTitle>View Result</DialogTitle>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                           <div className="grid grid-cols-4 items-center gap-4">
@@ -152,7 +150,7 @@ export default function TeacherResultsDashboard() {
                             </Label>
                             <Input
                               id="rollNumber"
-                              value={selectedResult?.rollNumber}
+                              value={selectedResult?.rollNumber.toString()}
                               className="col-span-3"
                               readOnly
                             />
@@ -165,63 +163,31 @@ export default function TeacherResultsDashboard() {
                               id="score"
                               value={selectedResult?.score}
                               className="col-span-3"
-                              readOnly={!isUpdateMode}
-                              onChange={(e) =>
-                                setSelectedResult((prev) =>
-                                  prev
-                                    ? {
-                                        ...prev,
-                                        score: parseInt(e.target.value),
-                                      }
-                                    : null
-                                )
-                              }
+                              readOnly
                             />
                           </div>
-                          {selectedResult && (
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label className="text-right">Result Image</Label>
-                              <div className="col-span-3">
-                              <Image
-                                  src={selectedResult.imageUrl}
-                                  alt={`Result for ${selectedResult.name}`}
-                                  width={200}
-                                  height={200}
-                                  className="w-full h-auto rounded-md"
-                                />
-                              </div>
-                            </div>
-                          )}
                         </div>
                         <DialogFooter>
-                          {isUpdateMode ? (
-                            <>
-                              <DialogClose asChild>
-                                <Button type="button" variant="secondary">
-                                  Cancel
-                                </Button>
-                              </DialogClose>
-                              <DialogClose asChild>
-                                <Button
-                                  type="button"
-                                  onClick={() =>
-                                    selectedResult?.id &&
-                                    selectedResult?.score &&
-                                    handleUpdate(selectedResult.id, selectedResult.score)
-                                  }
-                                >
-                                  Update
-                                </Button>
-                              </DialogClose>
-                            </>
-                          ) : (
-                            <DialogClose asChild>
-                              <Button type="button">Close</Button>
-                            </DialogClose>
-                          )}
+                          <DialogClose asChild>
+                            <Button type="button">Close</Button>
+                          </DialogClose>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => redirectToUpdate(result.id)}
+                    >
+                      <Pencil className="h-4 w-4 mr-1" /> Update
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deleteResult(result.id)}
+                    >
+                      <Trash className="h-4 w-4 mr-1" /> Delete
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -232,3 +198,4 @@ export default function TeacherResultsDashboard() {
     </div>
   );
 }
+

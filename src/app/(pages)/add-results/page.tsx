@@ -39,6 +39,8 @@ const ACCEPTED_IMAGE_TYPES = [
 
 const formSchema = z.object({
   rollNumber: z.string().min(1, "Roll number is required"),
+  name:z.string().min(3,'Student name is required').max(4),
+  marks:z.string().min(0,'Student marks is required').max(100),
   resultImage: z
     .custom<File | null>()
     .refine((file) => (file === null || file instanceof File), "Image is required.")
@@ -158,7 +160,40 @@ export default function TeacherResultUpload() {
                   </FormItem>
                 )}
               />
-
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Student Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter student Name"
+                        {...field}
+                        className="transition-all duration-300 ease-in-out focus:ring-2 focus:ring-blue-500"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="marks"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Student Marks</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter student Marks"
+                        {...field}
+                        className="transition-all duration-300 ease-in-out focus:ring-2 focus:ring-blue-500"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="resultImage"
