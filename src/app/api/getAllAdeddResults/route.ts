@@ -7,7 +7,7 @@ export async function GET() {
            await dbConnection(); // Connect to the database
   
       const student = await StudentResults.find();
-
+console.log(student)
       if (!student) {
         return NextResponse.json({ message: 'Student not found' }, { status: 404 });
       }
