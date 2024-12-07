@@ -5,7 +5,7 @@ import os from 'os';
 import { promisify } from 'util';
 import dbConnection from '@/lib/dbConnect';
 import { uploadOnCloudinary } from '@/lib/cloudinary';
-import students from '@/model/students';
+import StudentResults from '@/model/StudentResults';
 
 // Promisify unlink function for async use
 const unlinkAsync = promisify(fs.unlink);
@@ -24,12 +24,27 @@ export async function POST(req: NextRequest) {
 
     // Parse form data from the request
     const formData = await req.formData();
+
     const rollNumber = formData.get('rollNumber') as string;
+    const name = formData.get('name') as string;
+    const marks = formData.get('marks') as string;
     const image = formData.get('resultImage') as File;
 
-    if (!rollNumber || !image) {
+    // Validate required fields
+    if (!rollNumber || !name || !marks || !image) {
       return NextResponse.json(
-        { error: 'Roll number and image are required' },
+        { error: 'Roll number, name, marks, and image are required' },
+        { status: 400 }
+      );
+    }
+
+    // Convert rollNumber and marks to numbers
+    const rollNumberNumber = parseInt(rollNumber, 10);
+    const marksNumber = parseInt(marks, 10);
+
+    if (isNaN(rollNumberNumber) || isNaN(marksNumber)) {
+      return NextResponse.json(
+        { error: 'Roll number and marks must be valid numbers' },
         { status: 400 }
       );
     }
@@ -49,10 +64,14 @@ export async function POST(req: NextRequest) {
     await unlinkAsync(tempFilePath);
 
     // Save student record to MongoDB
-    const newStudent = new students({
-      rollNumber,
-      imageUrl,
-      publicId,
+    const newStudent = new StudentResults({
+      rollNumber: rollNumberNumber,
+      name,
+      marks: marksNumber,
+      resultImage: {
+        imageUrl,
+        publicId,
+      },
     });
 
     await newStudent.save();
@@ -60,10 +79,6 @@ export async function POST(req: NextRequest) {
     // Return success response
     return NextResponse.json({
       message: 'Student data saved',
-      student: {
-        rollNumber: newStudent.rollNumber,
-        imageUrl: newStudent.imageUrl,
-      },
     });
   } catch (err) {
     console.error('Error in upload handler:', err);

@@ -1,18 +1,18 @@
-'use client'
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Download } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import Image from 'next/image'
+"use client";
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -20,18 +20,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import axios from "axios"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import axios from "axios";
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   rollNumber: z.string().min(1, "Roll number is required"),
 });
 
-
 export default function StudentResult() {
-  const [resultImage, setResultImage] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [resultImage, setResultImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,57 +38,64 @@ export default function StudentResult() {
       name: "",
       rollNumber: "",
     },
-  })
+  });
 
   async function onSubmit() {
-    setIsLoading(true)
-    const { name, rollNumber } = form.getValues() // Get both name and roll number
+    setIsLoading(true);
+    const { name, rollNumber } = form.getValues(); // Get both name and roll number
     try {
       // Make API call to fetch the student result image based on roll number
-      const response = await axios.post('/api/getStudent-result', { rollNumber, name })
+      const response = await axios.post("/api/getStudent-result", {
+        rollNumber,
+        name,
+      });
 
       if (response.status === 200) {
-        const data = response.data
-        if (data?.student.imageUrl) {
-          setResultImage(data.student.imageUrl) // Set the result image URL returned from the API
+        const data = response.data;
+        if (data?.student.resultImage) {
+          setResultImage(data.student.resultImage.imageUrl);
         } else {
-          console.error('No result image found')
+          console.error("No result image found");
         }
       } else {
-        throw new Error('Student result not found')
+        throw new Error("Student result not found");
       }
     } catch (error) {
-      console.error('Error fetching result:', error)
+      console.error("Error fetching result:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
-
+ 
   const handleDownload = async () => {
-    if (!resultImage) return
+    if (!resultImage) return;
 
     try {
-      const response = await fetch(resultImage)
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `result-${form.getValues('rollNumber')}.jpg`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      const response = await fetch(resultImage);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `result-${form.getValues("rollNumber")}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading image:", error)
+      console.error("Error downloading image:", error);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen min-w-screen flex items-center justify-center dark:bg-black bg-gray-100 px-4 py-8">
       <Card className="w-full max-w-2xl transition-all duration-300 ease-in-out transform hover:shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Student Result Portal</CardTitle>
-          <CardDescription className="text-center">Enter your details to view your result</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">
+            Student Result Portal
+          </CardTitle>
+          <CardDescription className="text-center">
+            Enter your details to view your result
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Form {...form}>
@@ -101,7 +107,11 @@ export default function StudentResult() {
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your full name" {...field} className="transition-all duration-300 ease-in-out focus:ring-2 focus:ring-blue-500" />
+                      <Input
+                        placeholder="Enter your full name"
+                        {...field}
+                        className="transition-all duration-300 ease-in-out focus:ring-2 focus:ring-blue-500"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,14 +124,18 @@ export default function StudentResult() {
                   <FormItem>
                     <FormLabel>Roll Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your roll number" {...field} className="transition-all duration-300 ease-in-out focus:ring-2 focus:ring-blue-500" />
+                      <Input
+                        placeholder="Enter your roll number"
+                        {...field}
+                        className="transition-all duration-300 ease-in-out focus:ring-2 focus:ring-blue-500"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full transition-all duration-300 ease-in-out transform hover:scale-105"
                 disabled={isLoading}
               >
@@ -133,7 +147,7 @@ export default function StudentResult() {
           {resultImage && (
             <div className="space-y-4 animate-fade-in">
               <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border transition-all duration-300 ease-in-out transform hover:scale-105">
-              <Image
+                <Image
                   src={resultImage}
                   alt="Student Result"
                   layout="responsive"
@@ -143,8 +157,8 @@ export default function StudentResult() {
                   style={{ opacity: isLoading ? 0.5 : 1 }}
                 />
               </div>
-              <Button 
-                onClick={handleDownload} 
+              <Button
+                onClick={handleDownload}
                 className="w-full transition-all duration-300 ease-in-out transform hover:scale-105"
                 variant="outline"
               >
@@ -156,5 +170,5 @@ export default function StudentResult() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
