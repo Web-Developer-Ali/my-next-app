@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   rollNumber: z.string().min(1, "Roll number is required"),
@@ -31,7 +32,7 @@ const formSchema = z.object({
 export default function StudentResult() {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
+const {toast} = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,7 +43,7 @@ export default function StudentResult() {
 
   async function onSubmit() {
     setIsLoading(true);
-    const { name, rollNumber } = form.getValues(); // Get both name and roll number
+    const { name, rollNumber } = form.getValues();
     try {
       // Make API call to fetch the student result image based on roll number
       const response = await axios.post("/api/getStudent-result", {
@@ -51,8 +52,13 @@ export default function StudentResult() {
       });
 
       if (response.status === 200) {
+        
         const data = response.data;
         if (data?.student.resultImage) {
+          toast({
+            title: "Success",
+            description: response.data.message,
+          });
           setResultImage(data.student.resultImage.imageUrl);
         } else {
           console.error("No result image found");
@@ -61,7 +67,13 @@ export default function StudentResult() {
         throw new Error("Student result not found");
       }
     } catch (error) {
-      console.error("Error fetching result:", error);
+      toast({
+        title: "Fetching result fail",
+        description: axios.isAxiosError(error)
+          ? error.response?.data.message || "Something went wrong!"
+          : "An unexpected error occurred",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
