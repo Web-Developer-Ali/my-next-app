@@ -152,12 +152,15 @@ export default function TeacherResultsDashboard() {
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-5">Student Results Dashboard</h1>
+      <div className="flex flex-col justify-center items-center">
+        <h1 className="text-2xl font-bold mb-5 text-center">Student Results Dashboard</h1>
       <a href="/add-results">
         <Button variant="outline" className="mb-5">
           Add Result of Student
         </Button>
       </a>
+      </div>
+      
       <div className="rounded-md border hidden md:block">
         <Table>
           <TableHeader>

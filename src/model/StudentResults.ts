@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const studentResultsSchema = new mongoose.Schema(
   {
-    rollNumber: { type: Number, required: true },
+    rollNumber: { type: Number, required: true , unique:true },
     name: { type: String, required: true },
     marks: { type: Number, required: true },
     resultImage: {
