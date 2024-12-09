@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt";
 import Admin from "@/model/admin"; // Correct path to your Admin model
 import dbConnection from "@/lib/dbConnect"; // Ensure this file handles MongoDB connection
 

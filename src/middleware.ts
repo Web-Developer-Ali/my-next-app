@@ -10,7 +10,7 @@ async function verifyJWT(token: string, secret: string): Promise<JWTPayload> {
   try {
     const { payload } = await jwtVerify(token, secretBuffer);
     return payload;
-  } catch (error) {
+  } catch {
     throw new Error('Invalid token');
   }
 }
@@ -32,7 +32,7 @@ export async function middleware(req: NextRequest) {
         // If verification is successful, redirect to dashboard
         url.pathname = "/teacher-dashboard";
         return NextResponse.redirect(url);
-      } catch (error) {
+      } catch {
         // If token is invalid, allow access to sign-in page
         return NextResponse.next();
       }
