@@ -1,46 +1,56 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import axios from 'axios';
+import axios from "axios";
 
 const signInSchema = z.object({
   username: z
     .string()
-    .min(3, 'Username must be at least 3 characters long')
-    .max(20, 'Username must not exceed 20 characters')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
-  password: z.string().min(8, 'Password is required. At least 8 characters'),
+    .min(3, "Username must be at least 3 characters long")
+    .max(20, "Username must not exceed 20 characters")
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      "Username can only contain letters, numbers, and underscores"
+    ),
+  password: z.string().min(8, "Password is required. At least 8 characters"),
 });
 
-const changePasswordSchema = z.object({
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters long')
-    .max(20, 'Username must not exceed 20 characters')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
-  currentPassword: z.string().min(8, 'Current password is required. At least 8 characters'),
-  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
-  confirmNewPassword: z.string().min(8, 'Confirm new password is required'),
-}).refine((data) => data.newPassword === data.confirmNewPassword, {
-  message: "Passwords don't match",
-  path: ["confirmNewPassword"],
-});
+const changePasswordSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters long")
+      .max(20, "Username must not exceed 20 characters")
+      .regex(
+        /^[a-zA-Z0-9_]+$/,
+        "Username can only contain letters, numbers, and underscores"
+      ),
+    currentPassword: z
+      .string()
+      .min(8, "Current password is required. At least 8 characters"),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters"),
+    confirmNewPassword: z.string().min(8, "Confirm new password is required"),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Passwords don't match",
+    path: ["confirmNewPassword"],
+  });
 
 type SignInFormData = z.infer<typeof signInSchema>;
 type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 export default function AdminSignInPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [isChangePassword, setIsChangePassword] = useState(false);
 
@@ -52,17 +62,16 @@ export default function AdminSignInPage() {
     resolver: zodResolver(changePasswordSchema),
   });
 
-
   const onSignInSubmit: SubmitHandler<SignInFormData> = async (data) => {
     try {
-      const response = await axios.post('/api/admin_login', data); // Using Axios for API call
+      const response = await axios.post("/api/admin_login", data); // Using Axios for API call
 
       if (response.status === 200) {
         toast({
           title: "Sign in successful",
           description: "Welcome back, admin!",
         });
-        router.replace('/teacher-dashboard');
+        window.location.reload();
       } else {
         toast({
           title: "Sign in failed",
@@ -80,12 +89,14 @@ export default function AdminSignInPage() {
     }
   };
 
-  const onChangePasswordSubmit: SubmitHandler<ChangePasswordFormData> = async (data) => {
+  const onChangePasswordSubmit: SubmitHandler<ChangePasswordFormData> = async (
+    data
+  ) => {
     try {
-      const response = await fetch('/api/admin_login', {
-        method: 'PUT',
+      const response = await fetch("/api/admin_login", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           username: data.username,
@@ -101,6 +112,7 @@ export default function AdminSignInPage() {
           title: "Password changed successfully",
           description: "Your admin password has been updated",
         });
+        changePasswordForm.reset();
         setIsChangePassword(false); // Switch back to login form
       } else {
         toast({
@@ -137,17 +149,22 @@ export default function AdminSignInPage() {
         </CardHeader>
         <CardContent>
           {isChangePassword ? (
-            <form onSubmit={changePasswordForm.handleSubmit(onChangePasswordSubmit)} className="space-y-4">
+            <form
+              onSubmit={changePasswordForm.handleSubmit(onChangePasswordSubmit)}
+              className="space-y-4"
+            >
               <div className="space-y-2">
                 <Label htmlFor="username">Admin Username</Label>
                 <Input
                   id="username"
                   type="text"
                   placeholder="Enter your admin username"
-                  {...changePasswordForm.register('username')}
+                  {...changePasswordForm.register("username")}
                 />
                 {changePasswordForm.formState.errors.username && (
-                  <p className="text-sm text-red-500">{changePasswordForm.formState.errors.username.message}</p>
+                  <p className="text-sm text-red-500">
+                    {changePasswordForm.formState.errors.username.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -156,10 +173,15 @@ export default function AdminSignInPage() {
                   id="currentPassword"
                   type="password"
                   placeholder="••••••••"
-                  {...changePasswordForm.register('currentPassword')}
+                  {...changePasswordForm.register("currentPassword")}
                 />
                 {changePasswordForm.formState.errors.currentPassword && (
-                  <p className="text-sm text-red-500">{changePasswordForm.formState.errors.currentPassword.message}</p>
+                  <p className="text-sm text-red-500">
+                    {
+                      changePasswordForm.formState.errors.currentPassword
+                        .message
+                    }
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -168,10 +190,12 @@ export default function AdminSignInPage() {
                   id="newPassword"
                   type="password"
                   placeholder="••••••••"
-                  {...changePasswordForm.register('newPassword')}
+                  {...changePasswordForm.register("newPassword")}
                 />
                 {changePasswordForm.formState.errors.newPassword && (
-                  <p className="text-sm text-red-500">{changePasswordForm.formState.errors.newPassword.message}</p>
+                  <p className="text-sm text-red-500">
+                    {changePasswordForm.formState.errors.newPassword.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -180,28 +204,44 @@ export default function AdminSignInPage() {
                   id="confirmNewPassword"
                   type="password"
                   placeholder="••••••••"
-                  {...changePasswordForm.register('confirmNewPassword')}
+                  {...changePasswordForm.register("confirmNewPassword")}
                 />
                 {changePasswordForm.formState.errors.confirmNewPassword && (
-                  <p className="text-sm text-red-500">{changePasswordForm.formState.errors.confirmNewPassword.message}</p>
+                  <p className="text-sm text-red-500">
+                    {
+                      changePasswordForm.formState.errors.confirmNewPassword
+                        .message
+                    }
+                  </p>
                 )}
               </div>
-              <Button type="submit" className="w-full" disabled={changePasswordForm.formState.isSubmitting}>
-                {changePasswordForm.formState.isSubmitting ? 'Changing Password...' : 'Change Password'}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={changePasswordForm.formState.isSubmitting}
+              >
+                {changePasswordForm.formState.isSubmitting
+                  ? "Changing Password..."
+                  : "Change Password"}
               </Button>
             </form>
           ) : (
-            <form onSubmit={signInForm.handleSubmit(onSignInSubmit)} className="space-y-4">
+            <form
+              onSubmit={signInForm.handleSubmit(onSignInSubmit)}
+              className="space-y-4"
+            >
               <div className="space-y-2">
                 <Label htmlFor="username">Admin Username</Label>
                 <Input
                   id="username"
                   type="text"
                   placeholder="Enter your admin username"
-                  {...signInForm.register('username')}
+                  {...signInForm.register("username")}
                 />
                 {signInForm.formState.errors.username && (
-                  <p className="text-sm text-red-500">{signInForm.formState.errors.username.message}</p>
+                  <p className="text-sm text-red-500">
+                    {signInForm.formState.errors.username.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -210,19 +250,27 @@ export default function AdminSignInPage() {
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  {...signInForm.register('password')}
+                  {...signInForm.register("password")}
                 />
                 {signInForm.formState.errors.password && (
-                  <p className="text-sm text-red-500">{signInForm.formState.errors.password.message}</p>
+                  <p className="text-sm text-red-500">
+                    {signInForm.formState.errors.password.message}
+                  </p>
                 )}
               </div>
-              <Button type="submit" className="w-full" disabled={signInForm.formState.isSubmitting}>
-                {signInForm.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={signInForm.formState.isSubmitting}
+              >
+                {signInForm.formState.isSubmitting
+                  ? "Signing in..."
+                  : "Sign in"}
               </Button>
             </form>
           )}
         </CardContent>
       </Card>
-    </section>
+          </section>
   );
 }

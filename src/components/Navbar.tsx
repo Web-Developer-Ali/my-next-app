@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState, useEffect } from "react";
 import { Moon, Sun, GraduationCap } from 'lucide-react';
@@ -29,11 +29,13 @@ export function Navbar() {
   useEffect(() => {
     setMounted(true);
 
-    // Fetch the token from the API route to check login status
+    // Check login status from the server
     const checkLogin = async () => {
       const token = await fetchToken();
       if (token) {
         setIsLoggedIn(true); // User is logged in
+      } else {
+        setIsLoggedIn(false); // User is not logged in
       }
     };
 
@@ -41,21 +43,20 @@ export function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-   
     const response = await fetch('/api/log_out', { method: 'GET' });
 
     if (response.ok) {
- 
       setIsLoggedIn(false);
-      router.push("/sign-in"); 
+      router.push("/sign-in"); // Redirect to login page
     } else {
       console.error("Logout failed");
     }
   };
 
   const handleLogin = async () => {
-       setIsLoggedIn(true);
-    router.push("/teacher-dashboard");
+    // Simulate a login action (this should be replaced with actual login logic)
+    setIsLoggedIn(true);
+    router.push("/teacher-dashboard"); // Redirect to dashboard
   };
 
   if (!mounted) {
@@ -64,7 +65,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="container mx-auto flex h-16 items-center justify-between px-20">
+      <div className="container mx-auto flex h-16 items-center justify-between px-6">
         <div className="flex gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-3">
             <GraduationCap className="h-6 w-6" />
@@ -94,8 +95,8 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            
-            {/* Logout Button (Only shown if user is logged in) */}
+
+            {/* Login/Logout Button */}
             {isLoggedIn ? (
               <Button variant="outline" onClick={handleLogout}>
                 Logout
