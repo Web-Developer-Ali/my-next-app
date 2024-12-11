@@ -58,7 +58,6 @@ export function Navbar() {
           </div>
         </div>
       </div>
-      
 
       {/* Main Header */}
       <div className="bg-gradient-to-r from-blue-900 to-blue-800">
